@@ -64,6 +64,8 @@ public class MainActivity extends AppCompatActivity {
         lastTheme = utils.getTheme();
         updateUtils = UpdateUtils.getInstance(getApplicationContext());
 
+        utils.readCalendarEvent();
+
         if (!Utils.getInstance(this).isServiceRunning(ApplicationService.class)) {
             startService(new Intent(getBaseContext(), ApplicationService.class));
         }

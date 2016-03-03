@@ -13,10 +13,12 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.content.res.Configuration;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Build;
 import android.preference.PreferenceManager;
+import android.provider.CalendarContract;
 import android.support.annotation.RawRes;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -874,5 +876,76 @@ public class Utils {
         }
 
         return days;
+    }
+
+    public static class CalendarEvent {
+        private int id;
+        private String title;
+        private String description;
+        private Date start;
+        private Date end;
+        private String date;
+
+        public CalendarEvent(int id, String title, String description, Date start, Date end, String date) {
+            this.id = id;
+            this.title = title;
+            this.description = description;
+            this.start = start;
+            this.end = end;
+            this.date = date;
+        }
+
+        public int getId() {
+            return id;
+        }
+
+        public String getTitle() {
+            return title;
+        }
+
+        public String getDescription() {
+            return description;
+        }
+
+        public Date getStart() {
+            return start;
+        }
+
+        public Date getEnd() {
+            return end;
+        }
+
+        public String getDate() {
+            return date;
+        }
+    }
+
+    public List<CalendarEvent> readCalendarEvent() {
+        Cursor cursor = context.getContentResolver().query(Uri.parse("content://com.android.calendar/events"),
+                new String[] {
+                        CalendarContract.Events._ID, CalendarContract.Events.TITLE,
+                        CalendarContract.Events.DESCRIPTION, CalendarContract.Events.DTSTART,
+                        CalendarContract.Events.DTEND, CalendarContract.Events.EVENT_LOCATION,
+                }, null, null, null);
+
+        if (cursor == null) {
+            Log.e(TAG, "EE");
+            return null;
+        }
+
+        List<CalendarEvent> result = new ArrayList<>();
+        while (cursor.moveToNext()) {
+            result.add(new CalendarEvent(
+                    cursor.getInt(0),
+                    cursor.getString(1),
+                    cursor.getString(2),
+                    new Date(cursor.getLong(3)),
+                    new Date(cursor.getLong(4)),
+                    cursor.getString(5)
+            ));
+            Log.e(TAG, cursor.getString(1) + " " + cursor.getString(2));
+        }
+        cursor.close();
+        return result;
     }
 }
