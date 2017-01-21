@@ -50,6 +50,26 @@ public final class DateConverter {
         return jdnToCivil(islamicToJdn(islamic));
     }
 
+    public static long islamicToJdn(IslamicDate date) {
+        return islamicToJdn(date.getYear(), date.getDayOfMonth(), date.getDayOfYear());
+    }
+
+    // These two are ported from
+    // https://github.com/ilius/starcal/blob/master/scal3/cal_types/hijri.py
+    static long islamicEpoch = 1948440;
+    private static long islamicToJdn(int year, int month, int day) {
+        return (long)day + (long)Math.ceil(29.5 * (month - 1)) + (year - 1) * 354 +
+                (long)Math.floor((11*year + 3) / 30) + islamicEpoch;
+    }
+
+    public static IslamicDate jdnToIslamic(long jd) {
+        int year = (int) (((30 * (jd - 1 - islamicEpoch)) + 10646) / 10631);
+        int month = (int) Math.min(12, Math.ceil((jd - (29 + islamicToJdn(year, 1, 1))) / 29.5) + 1);
+        int day = (int) (jd - islamicToJdn(year, month, 1) + 1);
+        return new IslamicDate(year, month, day);
+    }
+
+    /*
     public static long islamicToJdn(IslamicDate islamic) {
         // NMONTH is the number of months between julian day number 1 and
         // the year 1405 A.H. which started immediatly after lunar
@@ -67,29 +87,9 @@ public final class DateConverter {
 
         return floor(visibility(k + 1048) + day + 0.5);
     }
+    */
 
-    public static PersianDate islamicToPersian(IslamicDate islamic) {
-        return jdnToPersian(islamicToJdn(islamic));
-    }
-
-    public static CivilDate jdnToCivil(long jdn) {
-
-        if (jdn > 2299160) {
-            long l = jdn + 68569;
-            long n = ((4 * l) / 146097);
-            l = l - ((146097 * n + 3) / 4);
-            long i = ((4000 * (l + 1)) / 1461001);
-            l = l - ((1461 * i) / 4) + 31;
-            long j = ((80 * l) / 2447);
-            int day = (int) (l - ((2447 * j) / 80));
-            l = (j / 11);
-            int month = (int) (j + 2 - 12 * l);
-            int year = (int) (100 * (n - 49) + i + l);
-            return new CivilDate(year, month, day);
-        } else
-            return jdnToJulian(jdn);
-    }
-
+    /*
     public static IslamicDate jdnToIslamic(long jd) {
 
         CivilDate civil = jdnToCivil(jd);
@@ -123,6 +123,29 @@ public final class DateConverter {
         day = (int) floor(jd - mjd + 0.5);
 
         return new IslamicDate(year, month, day);
+    }
+    */
+
+    public static PersianDate islamicToPersian(IslamicDate islamic) {
+        return jdnToPersian(islamicToJdn(islamic));
+    }
+
+    public static CivilDate jdnToCivil(long jdn) {
+
+        if (jdn > 2299160) {
+            long l = jdn + 68569;
+            long n = ((4 * l) / 146097);
+            l = l - ((146097 * n + 3) / 4);
+            long i = ((4000 * (l + 1)) / 1461001);
+            l = l - ((1461 * i) / 4) + 31;
+            long j = ((80 * l) / 2447);
+            int day = (int) (l - ((2447 * j) / 80));
+            l = (j / 11);
+            int month = (int) (j + 2 - 12 * l);
+            int year = (int) (100 * (n - 49) + i + l);
+            return new CivilDate(year, month, day);
+        } else
+            return jdnToJulian(jdn);
     }
 
     // TODO Is it correct to return a CivilDate as a JulianDate?
