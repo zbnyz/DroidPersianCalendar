@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.CalendarContract;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -33,15 +34,22 @@ import com.github.praytimes.PrayTimesCalculator;
 
 import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 
+import butterknife.BindView;
+import butterknife.BindViews;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.OnPageChange;
+import butterknife.Unbinder;
 import calendar.CivilDate;
 import calendar.DateConverter;
 import calendar.PersianDate;
 
-public class CalendarFragment extends Fragment
-        implements View.OnClickListener, ViewPager.OnPageChangeListener {
-    private ViewPager monthViewPager;
+public class CalendarFragment extends Fragment {
+    @BindView(R.id.calendar_pager)
+    ViewPager monthViewPager;
     private Utils utils;
 
     private Calendar calendar = Calendar.getInstance();
@@ -49,108 +57,64 @@ public class CalendarFragment extends Fragment
     private Coordinate coordinate;
 
     private PrayTimesCalculator prayTimesCalculator;
-    private TextView imsakTextView;
-    private TextView fajrTextView;
-    private TextView dhuhrTextView;
-    private TextView asrTextView;
-    private TextView maghribTextView;
-    private TextView ishaTextView;
-    private TextView sunriseTextView;
-    private TextView sunsetTextView;
-    private TextView midnightTextView;
+    @BindViews({R.id.imsak, R.id.fajr, R.id.sunrise, R.id.dhuhr, R.id.asr,
+            R.id.sunset, R.id.maghrib, R.id.isgha, R.id.midnight})
+    List<TextView> owghatTextViews;
+    final ButterKnife.Setter<TextView, Map<PrayTime, Clock>> SETTEXT = (view, prayTimes, index) ->
+            view.setText(utils.getPersianFormattedClock(prayTimes.get(PrayTime.values()[index])));
+    @BindView(R.id.week_day_name)
+    TextView weekDayName;
+    @BindViews({R.id.gregorian_date, R.id.islamic_date, R.id.shamsi_date})
+    List<TextView> dates;
+    @BindViews({R.id.event_title, R.id.holiday_title})
+    List<TextView> titles;
+    @BindView(R.id.today)
+    TextView today;
+    @BindView(R.id.today_icon)
+    AppCompatImageView todayIcon;
 
-    private TextView weekDayName;
-    private TextView gregorianDate;
-    private TextView islamicDate;
-    private TextView shamsiDate;
-    private TextView eventTitle;
-    private TextView holidayTitle;
-    private TextView today;
-    private AppCompatImageView todayIcon;
+    @BindView(R.id.more_owghat)
+    AppCompatImageView moreOwghat;
 
-    private AppCompatImageView moreOwghat;
+    @BindView(R.id.owghat)
+    CardView owghat;
+    @BindView(R.id.cardEvent)
+    CardView event;
 
-    private CardView owghat;
-    private CardView event;
-
-    private RelativeLayout imsakLayout;
-    private RelativeLayout fajrLayout;
-    private RelativeLayout sunriseLayout;
-    private RelativeLayout dhuhrLayout;
-    private RelativeLayout asrLayout;
-    private RelativeLayout sunsetLayout;
-    private RelativeLayout maghribLayout;
-    private RelativeLayout ishaLayout;
-    private RelativeLayout midnightLayout;
-
+    @BindViews({R.id.imsakLayout, R.id.fajrLayout, R.id.sunriseLayout, R.id.dhuhrLayout,
+            R.id.asrLayout, R.id.sunsetLayout, R.id.maghribLayout, R.id.ishaLayout,
+            R.id.midnightLayout})
+    List<RelativeLayout> owghatRelativeLayouts;
+    final ButterKnife.Setter<View, Integer> VISIBILITY = (view, value, index) ->
+            view.setVisibility(value);
     private int viewPagerPosition;
+
+    private Unbinder unbinder;
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
+    }
 
     @Nullable
     @Override
-    public View onCreateView(
-            LayoutInflater inflater,
-            @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
 
         setHasOptionsMenu(true);
 
         View view = inflater.inflate(R.layout.fragment_calendar, container, false);
+        unbinder = ButterKnife.bind(this, view);
         utils = Utils.getInstance(getContext());
         utils.clearYearWarnFlag();
         viewPagerPosition = 0;
-
-        imsakLayout = view.findViewById(R.id.imsakLayout);
-        fajrLayout = view.findViewById(R.id.fajrLayout);
-        sunriseLayout = view.findViewById(R.id.sunriseLayout);
-        dhuhrLayout = view.findViewById(R.id.dhuhrLayout);
-        asrLayout = view.findViewById(R.id.asrLayout);
-        sunsetLayout = view.findViewById(R.id.sunsetLayout);
-        maghribLayout = view.findViewById(R.id.maghribLayout);
-        ishaLayout = view.findViewById(R.id.ishaLayout);
-        midnightLayout = view.findViewById(R.id.midnightLayout);
-
-        gregorianDate = view.findViewById(R.id.gregorian_date);
-        islamicDate = view.findViewById(R.id.islamic_date);
-        shamsiDate = view.findViewById(R.id.shamsi_date);
-        weekDayName = view.findViewById(R.id.week_day_name);
-        today = view.findViewById(R.id.today);
-        todayIcon = view.findViewById(R.id.today_icon);
-
-        imsakTextView = view.findViewById(R.id.imsak);
-        fajrTextView = view.findViewById(R.id.fajr);
-        dhuhrTextView = view.findViewById(R.id.dhuhr);
-        asrTextView = view.findViewById(R.id.asr);
-        maghribTextView = view.findViewById(R.id.maghrib);
-        ishaTextView = view.findViewById(R.id.isgha);
-        sunriseTextView = view.findViewById(R.id.sunrise);
-        sunsetTextView = view.findViewById(R.id.sunset);
-        midnightTextView = view.findViewById(R.id.midnight);
-
-
-        moreOwghat = view.findViewById(R.id.more_owghat);
-
-        eventTitle = view.findViewById(R.id.event_title);
-        holidayTitle = view.findViewById(R.id.holiday_title);
-
-        owghat = view.findViewById(R.id.owghat);
-        event = view.findViewById(R.id.cardEvent);
-
-        monthViewPager = view.findViewById(R.id.calendar_pager);
 
         coordinate = utils.getCoordinate();
         prayTimesCalculator = new PrayTimesCalculator(utils.getCalculationMethod());
 
         monthViewPager.setAdapter(new CalendarAdapter(getChildFragmentManager()));
         monthViewPager.setCurrentItem(Constants.MONTHS_LIMIT / 2);
-
-        monthViewPager.addOnPageChangeListener(this);
-
-        owghat.setOnClickListener(this);
-        today.setOnClickListener(this);
-        todayIcon.setOnClickListener(this);
-        gregorianDate.setOnClickListener(this);
-        islamicDate.setOnClickListener(this);
-        shamsiDate.setOnClickListener(this);
 
         String cityName = utils.getCityName(false);
         if (!TextUtils.isEmpty(cityName)) {
@@ -173,10 +137,10 @@ public class CalendarFragment extends Fragment
 
     public void selectDay(PersianDate persianDate) {
         weekDayName.setText(utils.getWeekDayName(persianDate));
-        shamsiDate.setText(utils.dateToString(persianDate));
+        dates.get(2).setText(utils.dateToString(persianDate));
         CivilDate civilDate = DateConverter.persianToCivil(persianDate);
-        gregorianDate.setText(utils.dateToString(civilDate));
-        islamicDate.setText(utils.dateToString(
+        dates.get(0).setText(utils.dateToString(civilDate));
+        dates.get(1).setText(utils.dateToString(
                 DateConverter.civilToIslamic(civilDate, utils.getIslamicOffset())));
 
         if (utils.getToday().equals(persianDate)) {
@@ -222,18 +186,18 @@ public class CalendarFragment extends Fragment
         String events = utils.getEventsTitle(persianDate, false);
 
         event.setVisibility(View.GONE);
-        holidayTitle.setVisibility(View.GONE);
-        eventTitle.setVisibility(View.GONE);
+        titles.get(1).setVisibility(View.GONE);
+        titles.get(0).setVisibility(View.GONE);
 
         if (!TextUtils.isEmpty(holidays)) {
-            holidayTitle.setText(holidays);
-            holidayTitle.setVisibility(View.VISIBLE);
+            titles.get(1).setText(holidays);
+            titles.get(1).setVisibility(View.VISIBLE);
             event.setVisibility(View.VISIBLE);
         }
 
         if (!TextUtils.isEmpty(events)) {
-            eventTitle.setText(events);
-            eventTitle.setVisibility(View.VISIBLE);
+            titles.get(0).setText(events);
+            titles.get(0).setVisibility(View.VISIBLE);
             event.setVisibility(View.VISIBLE);
         }
     }
@@ -247,45 +211,22 @@ public class CalendarFragment extends Fragment
         Date date = calendar.getTime();
 
         Map<PrayTime, Clock> prayTimes = prayTimesCalculator.calculate(date, coordinate);
-
-        imsakTextView.setText(utils.getPersianFormattedClock(prayTimes.get(PrayTime.IMSAK)));
-        fajrTextView.setText(utils.getPersianFormattedClock(prayTimes.get(PrayTime.FAJR)));
-        sunriseTextView.setText(utils.getPersianFormattedClock(prayTimes.get(PrayTime.SUNRISE)));
-        dhuhrTextView.setText(utils.getPersianFormattedClock(prayTimes.get(PrayTime.DHUHR)));
-        asrTextView.setText(utils.getPersianFormattedClock(prayTimes.get(PrayTime.ASR)));
-        sunsetTextView.setText(utils.getPersianFormattedClock(prayTimes.get(PrayTime.SUNSET)));
-        maghribTextView.setText(utils.getPersianFormattedClock(prayTimes.get(PrayTime.MAGHRIB)));
-        ishaTextView.setText(utils.getPersianFormattedClock(prayTimes.get(PrayTime.ISHA)));
-        midnightTextView.setText(utils.getPersianFormattedClock(prayTimes.get(PrayTime.MIDNIGHT)));
+        ButterKnife.apply(owghatTextViews, SETTEXT, prayTimes);
 
         owghat.setVisibility(View.VISIBLE);
     }
 
-    @Override
+    @OnClick({R.id.owghat, R.id.today, R.id.today_icon, R.id.islamic_date, R.id.shamsi_date, R.id.gregorian_date})
     public void onClick(View v) {
         switch (v.getId()) {
 
             case R.id.owghat:
 
-                if (sunriseLayout.getVisibility() == View.VISIBLE) {
-                    sunriseLayout.setVisibility(View.GONE);
-                    dhuhrLayout.setVisibility(View.GONE);
-                    asrLayout.setVisibility(View.GONE);
-                    sunsetLayout.setVisibility(View.GONE);
-                    maghribLayout.setVisibility(View.GONE);
-                    ishaLayout.setVisibility(View.GONE);
-                    midnightLayout.setVisibility(View.GONE);
+                if (owghatRelativeLayouts.get(2).getVisibility() == View.VISIBLE) {
+                    ButterKnife.apply(owghatRelativeLayouts, VISIBILITY, View.GONE);
                     moreOwghat.setImageResource(R.drawable.ic_keyboard_arrow_down);
                 } else {
-                    imsakLayout.setVisibility(View.VISIBLE);
-                    fajrLayout.setVisibility(View.VISIBLE);
-                    sunriseLayout.setVisibility(View.VISIBLE);
-                    dhuhrLayout.setVisibility(View.VISIBLE);
-                    asrLayout.setVisibility(View.VISIBLE);
-                    sunsetLayout.setVisibility(View.VISIBLE);
-                    maghribLayout.setVisibility(View.VISIBLE);
-                    ishaLayout.setVisibility(View.VISIBLE);
-                    midnightLayout.setVisibility(View.VISIBLE);
+                    ButterKnife.apply(owghatRelativeLayouts, VISIBILITY, View.VISIBLE);
                     moreOwghat.setImageResource(R.drawable.ic_keyboard_arrow_up);
                 }
 
@@ -335,11 +276,7 @@ public class CalendarFragment extends Fragment
         selectDay(date);
     }
 
-    @Override
-    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-    }
-
-    @Override
+    @OnPageChange(R.id.calendar_pager)
     public void onPageSelected(int position) {
         viewPagerPosition = position - Constants.MONTHS_LIMIT / 2;
 
@@ -351,10 +288,6 @@ public class CalendarFragment extends Fragment
 
         today.setVisibility(View.VISIBLE);
         todayIcon.setVisibility(View.VISIBLE);
-    }
-
-    @Override
-    public void onPageScrollStateChanged(int state) {
     }
 
     @Override
