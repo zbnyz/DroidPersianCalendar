@@ -1,14 +1,15 @@
 package com.byagowi.persiancalendar.view.fragment;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.AppCompatSpinner;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.RelativeLayout;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import com.byagowi.persiancalendar.Constants;
@@ -19,6 +20,11 @@ import com.byagowi.persiancalendar.util.Utils;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.BindViews;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.OnItemSelected;
 import calendar.CivilDate;
 import calendar.DateConverter;
 import calendar.IslamicDate;
@@ -29,65 +35,41 @@ import calendar.PersianDate;
  *
  * @author ebraminio
  */
-public class ConverterFragment extends Fragment implements
-        AdapterView.OnItemSelectedListener, View.OnClickListener {
+public class ConverterFragment extends Fragment {
+    @BindViews({R.id.calendarTypeSpinner, R.id.yearSpinner, R.id.monthSpinner, R.id.daySpinner})
+    List<AppCompatSpinner> spinners;
+    @BindViews({R.id.date0, R.id.date1, R.id.date2})
+    List<TextView> dates;
+    @BindView(R.id.more_date)
+    RelativeLayout moreDate;
     private Utils utils;
-    private Spinner calendarTypeSpinner;
-    private Spinner yearSpinner;
-    private Spinner monthSpinner;
-    private Spinner daySpinner;
     private int startingYearOnYearSpinner = 0;
-    private TextView date0;
-    private TextView date1;
-    private TextView date2;
-    private RelativeLayout moreDate;
 
     @Override
-    public View onCreateView(LayoutInflater inflater,
+    public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_converter, container, false);
+        ButterKnife.bind(this, view);
         utils = Utils.getInstance(getContext());
         utils.setActivityTitleAndSubtitle(getActivity(), getString(R.string.date_converter), "");
 
-        // fill members
-        calendarTypeSpinner = view.findViewById(R.id.calendarTypeSpinner);
-        yearSpinner = view.findViewById(R.id.yearSpinner);
-        monthSpinner = view.findViewById(R.id.monthSpinner);
-        daySpinner = view.findViewById(R.id.daySpinner);
-
-        date0 = view.findViewById(R.id.date0);
-        date1 = view.findViewById(R.id.date1);
-        date2 = view.findViewById(R.id.date2);
-
-        date0.setOnClickListener(this);
-        date1.setOnClickListener(this);
-        date2.setOnClickListener(this);
-
-        moreDate = view.findViewById(R.id.more_date);
-
         // fill views
-        calendarTypeSpinner.setAdapter(new ShapedArrayAdapter<>(getContext(),
+        spinners.get(0).setAdapter(new ShapedArrayAdapter<>(getContext(),
                 Utils.DROPDOWN_LAYOUT, getResources().getStringArray(R.array.calendar_type)));
-        calendarTypeSpinner.setSelection(0);
+        spinners.get(0).setSelection(0);
 
         startingYearOnYearSpinner = utils.fillYearMonthDaySpinners(getContext(),
-                calendarTypeSpinner, yearSpinner, monthSpinner, daySpinner);
-
-        calendarTypeSpinner.setOnItemSelectedListener(this);
-
-        yearSpinner.setOnItemSelectedListener(this);
-        monthSpinner.setOnItemSelectedListener(this);
-        daySpinner.setOnItemSelectedListener(this);
+                spinners.get(0), spinners.get(1), spinners.get(2), spinners.get(3));
         //
         return view;
     }
 
     private void fillCalendarInfo() {
-        int year = startingYearOnYearSpinner + yearSpinner.getSelectedItemPosition();
-        int month = monthSpinner.getSelectedItemPosition() + 1;
-        int day = daySpinner.getSelectedItemPosition() + 1;
+        int year = startingYearOnYearSpinner + spinners.get(1).getSelectedItemPosition();
+        int month = spinners.get(2).getSelectedItemPosition() + 1;
+        int day = spinners.get(3).getSelectedItemPosition() + 1;
 
         CivilDate civilDate = null;
         PersianDate persianDate;
@@ -99,7 +81,7 @@ public class ConverterFragment extends Fragment implements
             moreDate.setVisibility(View.VISIBLE);
 
             List<String> calendarsTextList = new ArrayList<>();
-            switch (utils.calendarTypeFromPosition(calendarTypeSpinner.getSelectedItemPosition())) {
+            switch (utils.calendarTypeFromPosition(spinners.get(0).getSelectedItemPosition())) {
                 case GREGORIAN:
                     civilDate = new CivilDate(year, month, day);
                     islamicDate = DateConverter.civilToIslamic(civilDate, 0);
@@ -136,18 +118,18 @@ public class ConverterFragment extends Fragment implements
             sb.append(" ");
             sb.append(calendarsTextList.get(0));
 
-            date0.setText(sb.toString());
-            date1.setText(calendarsTextList.get(1));
-            date2.setText(calendarsTextList.get(2));
+            dates.get(0).setText(sb.toString());
+            dates.get(1).setText(calendarsTextList.get(1));
+            dates.get(2).setText(calendarsTextList.get(2));
 
         } catch (RuntimeException e) {
             moreDate.setVisibility(View.GONE);
-            date0.setText(getString(R.string.date_exception));
+            dates.get(0).setText(getString(R.string.date_exception));
         }
     }
 
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+    @OnItemSelected({R.id.calendarTypeSpinner, R.id.yearSpinner, R.id.monthSpinner, R.id.daySpinner})
+    public void onItemSelected(AdapterView<?> parent) {
         switch (parent.getId()) {
             case R.id.yearSpinner:
             case R.id.monthSpinner:
@@ -157,17 +139,12 @@ public class ConverterFragment extends Fragment implements
 
             case R.id.calendarTypeSpinner:
                 startingYearOnYearSpinner = utils.fillYearMonthDaySpinners(getContext(),
-                        calendarTypeSpinner, yearSpinner, monthSpinner, daySpinner);
+                        spinners.get(0), spinners.get(1), spinners.get(2), spinners.get(3));
                 break;
         }
     }
 
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-
-    }
-
-    @Override
+    @OnClick({R.id.date0, R.id.date1, R.id.date2})
     public void onClick(View view) {
         utils.copyToClipboard(view);
     }
