@@ -1,6 +1,6 @@
 package com.byagowi.persiancalendar.adapter;
 
-import android.content.Context;
+import android.support.annotation.NonNull;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -15,57 +15,62 @@ import com.byagowi.persiancalendar.view.preferences.LocationPreferenceDialog;
 
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 public class LocationAdapter extends RecyclerView.Adapter<LocationAdapter.ViewHolder> {
     private String locale;
     private List<CityEntity> cities;
-    private Utils utils;
     private LocationPreferenceDialog locationPreferenceDialog;
-    private LayoutInflater layoutInflater;
 
     public LocationAdapter(LocationPreferenceDialog locationPreferenceDialog) {
-        Context context = locationPreferenceDialog.getContext();
-        utils = Utils.getInstance(locationPreferenceDialog.getContext());
-        this.layoutInflater = LayoutInflater.from(context);
+        Utils utils = Utils.getInstance(locationPreferenceDialog.getContext());
         this.locationPreferenceDialog = locationPreferenceDialog;
         this.cities = utils.getAllCities(true);
         this.locale = utils.getAppLanguage();
     }
 
-    class ViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
-        private TextView tvCountry;
-        private TextView tvCity;
-
-        ViewHolder(View itemView) {
-            super(itemView);
-            itemView.setOnClickListener(this);
-            tvCity = itemView.findViewById(R.id.tvCity);
-            tvCountry = itemView.findViewById(R.id.tvCountry);
-        }
-
-        @Override
-        public void onClick(View view) {
-            locationPreferenceDialog.selectItem(cities.get(getAdapterPosition()).getKey());
-        }
+    @NonNull
+    @Override
+    public LocationAdapter.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        return new ViewHolder(LayoutInflater.from(parent.getContext()).inflate(R.layout.list_item_city_name, parent, false));
     }
 
     @Override
-    public LocationAdapter.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new ViewHolder(layoutInflater.inflate(R.layout.list_item_city_name, parent, false));
-    }
-
-    @Override
-    public void onBindViewHolder(ViewHolder holder, int position) {
-        holder.tvCity.setText(locale.equals(Constants.LANG_EN)
-                ? cities.get(position).getEn()
-                : cities.get(position).getFa());
-
-        holder.tvCountry.setText(locale.equals(Constants.LANG_EN)
-                ? cities.get(position).getCountryEn()
-                : cities.get(position).getCountryFa());
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+        holder.bind(position);
     }
 
     @Override
     public int getItemCount() {
         return cities.size();
+    }
+
+    class ViewHolder extends RecyclerView.ViewHolder {
+        @BindView(R.id.tvCity)
+        TextView tvCountry;
+        @BindView(R.id.tvCountry)
+        TextView tvCity;
+
+        ViewHolder(View itemView) {
+            super(itemView);
+            ButterKnife.bind(this, itemView);
+        }
+
+        void bind(int position) {
+            tvCity.setText(locale.equals(Constants.LANG_EN)
+                    ? cities.get(position).getEn()
+                    : cities.get(position).getFa());
+
+            tvCountry.setText(locale.equals(Constants.LANG_EN)
+                    ? cities.get(position).getCountryEn()
+                    : cities.get(position).getCountryFa());
+        }
+
+        @OnClick({R.id.ll_root})
+        public void onClick() {
+            locationPreferenceDialog.selectItem(cities.get(getAdapterPosition()).getKey());
+        }
     }
 }
