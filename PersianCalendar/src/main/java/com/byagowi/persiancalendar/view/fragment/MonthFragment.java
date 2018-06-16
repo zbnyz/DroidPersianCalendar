@@ -5,9 +5,9 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.widget.AppCompatImageView;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -22,30 +22,55 @@ import com.byagowi.persiancalendar.util.Utils;
 
 import java.util.List;
 
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+import butterknife.Unbinder;
 import calendar.PersianDate;
 
-public class MonthFragment extends Fragment implements View.OnClickListener {
+public class MonthFragment extends Fragment {
     private Utils utils;
     private CalendarFragment calendarFragment;
     private PersianDate persianDate;
     private int offset;
     private MonthAdapter adapter;
+    private Unbinder unbinder;
+    private BroadcastReceiver setCurrentMonthReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int value = intent.getExtras().getInt(Constants.BROADCAST_FIELD_TO_MONTH_FRAGMENT);
+            if (value == offset) {
+                updateTitle();
+
+                int day = intent.getExtras().getInt(Constants.BROADCAST_FIELD_SELECT_DAY);
+                if (day != -1) {
+                    adapter.selectDay(day);
+                }
+
+                utils.checkYearAndWarnIfNeeded(persianDate.getYear());
+
+            } else if (value == Constants.BROADCAST_TO_MONTH_FRAGMENT_RESET_DAY) {
+                adapter.clearSelectedDay();
+            }
+        }
+    };
+
+    @Override
+    public void onDestroyView() {
+        super.onDestroyView();
+        unbinder.unbind();
+    }
 
     @Override
     public View onCreateView(
-            LayoutInflater inflater,
+            @NonNull LayoutInflater inflater,
             ViewGroup container,
             Bundle savedInstanceState) {
 
         utils = Utils.getInstance(getContext());
         View view = inflater.inflate(R.layout.fragment_month, container, false);
+        unbinder = ButterKnife.bind(this, view);
         offset = getArguments().getInt(Constants.OFFSET_ARGUMENT);
         List<DayEntity> days = utils.getDays(offset);
-
-        AppCompatImageView prev = view.findViewById(R.id.prev);
-        AppCompatImageView next = view.findViewById(R.id.next);
-        prev.setOnClickListener(this);
-        next.setOnClickListener(this);
 
         persianDate = utils.getToday();
         int month = persianDate.getMonth() - offset;
@@ -88,26 +113,6 @@ public class MonthFragment extends Fragment implements View.OnClickListener {
         return view;
     }
 
-    private BroadcastReceiver setCurrentMonthReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int value = intent.getExtras().getInt(Constants.BROADCAST_FIELD_TO_MONTH_FRAGMENT);
-            if (value == offset) {
-                updateTitle();
-
-                int day = intent.getExtras().getInt(Constants.BROADCAST_FIELD_SELECT_DAY);
-                if (day != -1) {
-                    adapter.selectDay(day);
-                }
-
-                utils.checkYearAndWarnIfNeeded(persianDate.getYear());
-
-            } else if (value == Constants.BROADCAST_TO_MONTH_FRAGMENT_RESET_DAY) {
-                adapter.clearSelectedDay();
-            }
-        }
-    };
-
     @Override
     public void onDestroy() {
         LocalBroadcastManager.getInstance(getContext()).unregisterReceiver(setCurrentMonthReceiver);
@@ -122,7 +127,7 @@ public class MonthFragment extends Fragment implements View.OnClickListener {
         calendarFragment.addEventOnCalendar(day);
     }
 
-    @Override
+    @OnClick({R.id.prev, R.id.next})
     public void onClick(View v) {
 
         switch (v.getId()) {
