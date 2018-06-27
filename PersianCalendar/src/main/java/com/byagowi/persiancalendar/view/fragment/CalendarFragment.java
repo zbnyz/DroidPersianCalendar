@@ -3,6 +3,7 @@ package com.byagowi.persiancalendar.view.fragment;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.Intent;
+import android.databinding.DataBindingUtil;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.CalendarContract;
@@ -10,9 +11,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
-import android.support.v7.widget.AppCompatImageView;
-import android.support.v7.widget.CardView;
-import android.support.v7.widget.LinearLayoutCompat;
 import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -25,6 +23,7 @@ import android.widget.TextView;
 import com.byagowi.persiancalendar.Constants;
 import com.byagowi.persiancalendar.R;
 import com.byagowi.persiancalendar.adapter.CalendarAdapter;
+import com.byagowi.persiancalendar.databinding.FragmentCalendarBinding;
 import com.byagowi.persiancalendar.util.Utils;
 import com.byagowi.persiancalendar.view.dialog.SelectDayDialog;
 import com.github.praytimes.Clock;
@@ -43,50 +42,10 @@ import calendar.PersianDate;
 
 public class CalendarFragment extends Fragment
         implements View.OnClickListener, ViewPager.OnPageChangeListener {
-    private ViewPager monthViewPager;
-
+    FragmentCalendarBinding b;
     private Calendar calendar = Calendar.getInstance();
-
     private Coordinate coordinate;
-
     private PrayTimesCalculator prayTimesCalculator;
-    private TextView imsakTextView;
-    private TextView fajrTextView;
-    private TextView dhuhrTextView;
-    private TextView asrTextView;
-    private TextView maghribTextView;
-    private TextView ishaTextView;
-    private TextView sunriseTextView;
-    private TextView sunsetTextView;
-    private TextView midnightTextView;
-
-    private TextView weekDayName;
-    private TextView gregorianDate;
-    private TextView gregorianDateDay;
-    private TextView islamicDate;
-    private TextView islamicDateDay;
-    private TextView shamsiDate;
-    private TextView shamsiDateDay;
-    private TextView eventTitle;
-    private TextView holidayTitle;
-    private TextView today;
-    private AppCompatImageView todayIcon;
-
-    private AppCompatImageView moreOwghat;
-
-    private CardView owghat;
-    private CardView event;
-
-    private LinearLayoutCompat imsakLayout;
-    private LinearLayoutCompat fajrLayout;
-    private LinearLayoutCompat sunriseLayout;
-    private LinearLayoutCompat dhuhrLayout;
-    private LinearLayoutCompat asrLayout;
-    private LinearLayoutCompat sunsetLayout;
-    private LinearLayoutCompat maghribLayout;
-    private LinearLayoutCompat ishaLayout;
-    private LinearLayoutCompat midnightLayout;
-
     private int viewPagerPosition;
 
     @Nullable
@@ -97,71 +56,31 @@ public class CalendarFragment extends Fragment
             @Nullable Bundle savedInstanceState) {
 
         setHasOptionsMenu(true);
-
-        View view = inflater.inflate(R.layout.fragment_calendar, container, false);
+        b = DataBindingUtil.inflate(inflater,
+                R.layout.fragment_calendar, container, false);
+        View view = b.getRoot();
         Utils.clearYearWarnFlag();
         viewPagerPosition = 0;
-
-        imsakLayout = view.findViewById(R.id.imsakLayout);
-        fajrLayout = view.findViewById(R.id.fajrLayout);
-        sunriseLayout = view.findViewById(R.id.sunriseLayout);
-        dhuhrLayout = view.findViewById(R.id.dhuhrLayout);
-        asrLayout = view.findViewById(R.id.asrLayout);
-        sunsetLayout = view.findViewById(R.id.sunsetLayout);
-        maghribLayout = view.findViewById(R.id.maghribLayout);
-        ishaLayout = view.findViewById(R.id.ishaLayout);
-        midnightLayout = view.findViewById(R.id.midnightLayout);
-
-        gregorianDate = view.findViewById(R.id.gregorian_date);
-        gregorianDateDay = view.findViewById(R.id.gregorian_date_day);
-        islamicDate = view.findViewById(R.id.islamic_date);
-        islamicDateDay = view.findViewById(R.id.islamic_date_day);
-        shamsiDate = view.findViewById(R.id.shamsi_date);
-        shamsiDateDay = view.findViewById(R.id.shamsi_date_day);
-        weekDayName = view.findViewById(R.id.week_day_name);
-        today = view.findViewById(R.id.today);
-        todayIcon = view.findViewById(R.id.today_icon);
-
-        imsakTextView = view.findViewById(R.id.imsak);
-        fajrTextView = view.findViewById(R.id.fajr);
-        dhuhrTextView = view.findViewById(R.id.dhuhr);
-        asrTextView = view.findViewById(R.id.asr);
-        maghribTextView = view.findViewById(R.id.maghrib);
-        ishaTextView = view.findViewById(R.id.isgha);
-        sunriseTextView = view.findViewById(R.id.sunrise);
-        sunsetTextView = view.findViewById(R.id.sunset);
-        midnightTextView = view.findViewById(R.id.midnight);
-
-
-        moreOwghat = view.findViewById(R.id.more_owghat);
-
-        eventTitle = view.findViewById(R.id.event_title);
-        holidayTitle = view.findViewById(R.id.holiday_title);
-
-        owghat = view.findViewById(R.id.owghat);
-        event = view.findViewById(R.id.cardEvent);
-
-        monthViewPager = view.findViewById(R.id.calendar_pager);
 
         coordinate = Utils.getCoordinate(getContext());
         prayTimesCalculator = new PrayTimesCalculator(Utils.getCalculationMethod());
 
-        monthViewPager.setAdapter(new CalendarAdapter(getChildFragmentManager()));
-        monthViewPager.setCurrentItem(Constants.MONTHS_LIMIT / 2);
+        b.calendarPager.setAdapter(new CalendarAdapter(getChildFragmentManager()));
+        b.calendarPager.setCurrentItem(Constants.MONTHS_LIMIT / 2);
 
-        monthViewPager.addOnPageChangeListener(this);
+        b.calendarPager.addOnPageChangeListener(this);
 
-        owghat.setOnClickListener(this);
-        today.setOnClickListener(this);
-        todayIcon.setOnClickListener(this);
-        gregorianDate.setOnClickListener(this);
-        gregorianDateDay.setOnClickListener(this);
-        islamicDate.setOnClickListener(this);
-        islamicDateDay.setOnClickListener(this);
-        shamsiDate.setOnClickListener(this);
-        shamsiDateDay.setOnClickListener(this);
+        b.owghat.setOnClickListener(this);
+        b.today.setOnClickListener(this);
+        b.todayIcon.setOnClickListener(this);
+        b.gregorianDate.setOnClickListener(this);
+        b.gregorianDateDay.setOnClickListener(this);
+        b.islamicDate.setOnClickListener(this);
+        b.islamicDateDay.setOnClickListener(this);
+        b.shamsiDate.setOnClickListener(this);
+        b.shamsiDateDay.setOnClickListener(this);
 
-        String cityName = Utils.getCityName(getContext(),false);
+        String cityName = Utils.getCityName(getContext(), false);
         if (!TextUtils.isEmpty(cityName)) {
             ((TextView) view.findViewById(R.id.owghat_text))
                     .append(" (" + cityName + ")");
@@ -177,34 +96,33 @@ public class CalendarFragment extends Fragment
     }
 
     public void changeMonth(int position) {
-        monthViewPager.setCurrentItem(monthViewPager.getCurrentItem() + position, true);
+        b.calendarPager.setCurrentItem(b.calendarPager.getCurrentItem() + position, true);
     }
 
     public void selectDay(PersianDate persianDate) {
-        weekDayName.setText(Utils.getWeekDayName(persianDate));
-        Context context = getContext();
+        b.weekDayName.setText(Utils.getWeekDayName(persianDate));
         CivilDate civilDate = DateConverter.persianToCivil(persianDate);
         IslamicDate hijriDate = DateConverter.civilToIslamic(civilDate, Utils.getIslamicOffset());
 
-        shamsiDateDay.setText(Utils.formatNumber(persianDate.getDayOfMonth()));
-        shamsiDate.setText(Utils.getMonthName(persianDate) + "\n" + Utils.formatNumber(persianDate.getYear()));
+        b.shamsiDateDay.setText(Utils.formatNumber(persianDate.getDayOfMonth()));
+        b.shamsiDate.setText(Utils.getMonthName(persianDate) + "\n" + Utils.formatNumber(persianDate.getYear()));
 
-        gregorianDateDay.setText(Utils.formatNumber(civilDate.getDayOfMonth()));
-        gregorianDate.setText(Utils.getMonthName(civilDate) + "\n" + Utils.formatNumber(civilDate.getYear()));
+        b.gregorianDateDay.setText(Utils.formatNumber(civilDate.getDayOfMonth()));
+        b.gregorianDate.setText(Utils.getMonthName(civilDate) + "\n" + Utils.formatNumber(civilDate.getYear()));
 
-        islamicDateDay.setText(Utils.formatNumber(hijriDate.getDayOfMonth()));
-        islamicDate.setText(Utils.getMonthName(hijriDate) + "\n" + Utils.formatNumber(hijriDate.getYear()));
+        b.islamicDateDay.setText(Utils.formatNumber(hijriDate.getDayOfMonth()));
+        b.islamicDate.setText(Utils.getMonthName(hijriDate) + "\n" + Utils.formatNumber(hijriDate.getYear()));
 
         if (Utils.getToday().equals(persianDate)) {
-            today.setVisibility(View.GONE);
-            todayIcon.setVisibility(View.GONE);
+            b.today.setVisibility(View.GONE);
+            b.todayIcon.setVisibility(View.GONE);
             if (Utils.isIranTime()) {
-                weekDayName.setText(weekDayName.getText() +
+                b.weekDayName.setText(b.weekDayName.getText() +
                         " (" + getString(R.string.iran_time) + ")");
             }
         } else {
-            today.setVisibility(View.VISIBLE);
-            todayIcon.setVisibility(View.VISIBLE);
+            b.today.setVisibility(View.VISIBLE);
+            b.todayIcon.setVisibility(View.VISIBLE);
         }
 
         setOwghat(civilDate);
@@ -238,26 +156,26 @@ public class CalendarFragment extends Fragment
         String holidays = Utils.getEventsTitle(context, persianDate, true);
         String events = Utils.getEventsTitle(context, persianDate, false);
 
-        event.setVisibility(View.GONE);
-        holidayTitle.setVisibility(View.GONE);
-        eventTitle.setVisibility(View.GONE);
+        b.cardEvent.setVisibility(View.GONE);
+        b.holidayTitle.setVisibility(View.GONE);
+        b.eventTitle.setVisibility(View.GONE);
 
         if (!TextUtils.isEmpty(holidays)) {
-            holidayTitle.setText(holidays);
-            holidayTitle.setVisibility(View.VISIBLE);
-            event.setVisibility(View.VISIBLE);
+            b.holidayTitle.setText(holidays);
+            b.holidayTitle.setVisibility(View.VISIBLE);
+            b.cardEvent.setVisibility(View.VISIBLE);
         }
 
         if (!TextUtils.isEmpty(events)) {
-            eventTitle.setText(events);
-            eventTitle.setVisibility(View.VISIBLE);
-            event.setVisibility(View.VISIBLE);
+            b.eventTitle.setText(events);
+            b.eventTitle.setVisibility(View.VISIBLE);
+            b.cardEvent.setVisibility(View.VISIBLE);
         }
     }
 
     private void setOwghat(CivilDate civilDate) {
         if (coordinate == null) {
-            owghat.setVisibility(View.GONE);
+            b.owghat.setVisibility(View.GONE);
             return;
         }
 
@@ -266,15 +184,15 @@ public class CalendarFragment extends Fragment
 
         Map<PrayTime, Clock> prayTimes = prayTimesCalculator.calculate(date, coordinate);
 
-        imsakTextView.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.IMSAK)));
-        fajrTextView.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.FAJR)));
-        sunriseTextView.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.SUNRISE)));
-        dhuhrTextView.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.DHUHR)));
-        asrTextView.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.ASR)));
-        sunsetTextView.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.SUNSET)));
-        maghribTextView.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.MAGHRIB)));
-        ishaTextView.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.ISHA)));
-        midnightTextView.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.MIDNIGHT)));
+        b.imsakText.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.IMSAK)));
+        b.fajrText.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.FAJR)));
+        b.sunriseText.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.SUNRISE)));
+        b.dhuhrText.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.DHUHR)));
+        b.asrText.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.ASR)));
+        b.sunsetText.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.SUNSET)));
+        b.maghribText.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.MAGHRIB)));
+        b.ishaText.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.ISHA)));
+        b.midnightText.setText(Utils.getPersianFormattedClock(prayTimes.get(PrayTime.MIDNIGHT)));
     }
 
     @Override
@@ -283,17 +201,17 @@ public class CalendarFragment extends Fragment
 
             case R.id.owghat:
 
-                boolean isOpenCommand = sunriseLayout.getVisibility() == View.GONE;
+                boolean isOpenCommand = b.sunriseLayout.getVisibility() == View.GONE;
 
-                moreOwghat.setImageResource(isOpenCommand
+                b.moreOwghat.setImageResource(isOpenCommand
                         ? R.drawable.ic_keyboard_arrow_up
                         : R.drawable.ic_keyboard_arrow_down);
-                imsakLayout.setVisibility(isOpenCommand ? View.VISIBLE : View.GONE);
-                sunriseLayout.setVisibility(isOpenCommand ? View.VISIBLE : View.GONE);
-                asrLayout.setVisibility(isOpenCommand ? View.VISIBLE : View.GONE);
-                sunsetLayout.setVisibility(isOpenCommand ? View.VISIBLE : View.GONE);
-                ishaLayout.setVisibility(isOpenCommand ? View.VISIBLE : View.GONE);
-                midnightLayout.setVisibility(isOpenCommand ? View.VISIBLE : View.GONE);
+                b.imsakLayout.setVisibility(isOpenCommand ? View.VISIBLE : View.GONE);
+                b.sunriseLayout.setVisibility(isOpenCommand ? View.VISIBLE : View.GONE);
+                b.asrLayout.setVisibility(isOpenCommand ? View.VISIBLE : View.GONE);
+                b.sunsetLayout.setVisibility(isOpenCommand ? View.VISIBLE : View.GONE);
+                b.ishaLayout.setVisibility(isOpenCommand ? View.VISIBLE : View.GONE);
+                b.midnightLayout.setVisibility(isOpenCommand ? View.VISIBLE : View.GONE);
 
                 break;
 
@@ -304,20 +222,20 @@ public class CalendarFragment extends Fragment
 
             case R.id.shamsi_date:
             case R.id.shamsi_date_day:
-                Utils.copyToClipboard(getContext(), shamsiDateDay.getText() + " " +
-                        shamsiDate.getText().toString().replace("\n", " "));
+                Utils.copyToClipboard(getContext(), b.shamsiDateDay.getText() + " " +
+                        b.shamsiDate.getText().toString().replace("\n", " "));
                 break;
 
             case R.id.gregorian_date:
             case R.id.gregorian_date_day:
-                Utils.copyToClipboard(getContext(), gregorianDateDay.getText() + " " +
-                        gregorianDate.getText().toString().replace("\n", " "));
+                Utils.copyToClipboard(getContext(), b.gregorianDateDay.getText() + " " +
+                        b.gregorianDate.getText().toString().replace("\n", " "));
                 break;
-                
+
             case R.id.islamic_date:
             case R.id.islamic_date_day:
-                Utils.copyToClipboard(getContext(), islamicDateDay.getText() + " " +
-                        islamicDate.getText().toString().replace("\n", " "));
+                Utils.copyToClipboard(getContext(), b.islamicDateDay.getText() + " " +
+                        b.islamicDate.getText().toString().replace("\n", " "));
                 break;
         }
     }
@@ -330,8 +248,8 @@ public class CalendarFragment extends Fragment
 
         LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
 
-        if (monthViewPager.getCurrentItem() != Constants.MONTHS_LIMIT / 2) {
-            monthViewPager.setCurrentItem(Constants.MONTHS_LIMIT / 2);
+        if (b.calendarPager.getCurrentItem() != Constants.MONTHS_LIMIT / 2) {
+            b.calendarPager.setCurrentItem(Constants.MONTHS_LIMIT / 2);
         }
 
         selectDay(Utils.getToday());
@@ -342,7 +260,7 @@ public class CalendarFragment extends Fragment
         viewPagerPosition =
                 (today.getYear() - date.getYear()) * 12 + today.getMonth() - date.getMonth();
 
-        monthViewPager.setCurrentItem(viewPagerPosition + Constants.MONTHS_LIMIT / 2);
+        b.calendarPager.setCurrentItem(viewPagerPosition + Constants.MONTHS_LIMIT / 2);
 
         Intent intent = new Intent(Constants.BROADCAST_INTENT_TO_MONTH_FRAGMENT);
         intent.putExtra(Constants.BROADCAST_FIELD_TO_MONTH_FRAGMENT, viewPagerPosition);
@@ -367,8 +285,8 @@ public class CalendarFragment extends Fragment
 
         LocalBroadcastManager.getInstance(getContext()).sendBroadcast(intent);
 
-        today.setVisibility(View.VISIBLE);
-        todayIcon.setVisibility(View.VISIBLE);
+        b.today.setVisibility(View.VISIBLE);
+        b.todayIcon.setVisibility(View.VISIBLE);
     }
 
     @Override
