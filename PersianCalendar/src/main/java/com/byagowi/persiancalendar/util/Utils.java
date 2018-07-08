@@ -870,9 +870,7 @@ public class Utils {
         Resources resources = context.getResources();
         Configuration config = resources.getConfiguration();
         config.locale = locale;
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            config.setLayoutDirection(config.locale);
-        }
+        config.setLayoutDirection(config.locale);
         resources.updateConfiguration(config, resources.getDisplayMetrics());
     }
 

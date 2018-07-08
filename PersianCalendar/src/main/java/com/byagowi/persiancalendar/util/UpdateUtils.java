@@ -190,11 +190,10 @@ public class UpdateUtils {
         String body = Utils.dateToString(context, civil) + Constants.PERSIAN_COMMA + " "
                 + Utils.dateToString(context, DateConverter.civilToIslamic(civil, Utils.getIslamicOffset()));
 
-        // Prepend a right-to-left mark character to Android with sane text rendering stack
+        // Prepend a right-to-left mark character to old Android
         // to resolve a bug seems some Samsung devices have with characters with weak direction,
         // digits being at the first of string on
-        if ((Build.VERSION.SDK_INT > Build.VERSION_CODES.JELLY_BEAN) &&
-                (Build.VERSION.SDK_INT < Build.VERSION_CODES.N)) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) {
             title = Constants.RLM + title;
             body = Constants.RLM + body;
         }

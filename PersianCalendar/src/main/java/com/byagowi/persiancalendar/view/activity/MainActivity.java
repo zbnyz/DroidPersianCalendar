@@ -131,10 +131,8 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
             int slidingDirection = +1;
 
             {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-                    if (isRTL())
-                        slidingDirection = -1;
-                }
+                if (isRTL())
+                    slidingDirection = -1;
             }
 
             @Override
@@ -182,7 +180,6 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
 
     }
 
-    @TargetApi(Build.VERSION_CODES.JELLY_BEAN_MR1)
     private boolean isRTL() {
         return getResources().getConfiguration().getLayoutDirection() == View.LAYOUT_DIRECTION_RTL;
     }
@@ -192,9 +189,7 @@ public class MainActivity extends AppCompatActivity implements SharedPreferences
         super.onConfigurationChanged(newConfig);
         Utils.initUtils(this);
         View v = findViewById(R.id.drawer);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            v.setLayoutDirection(isRTL() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
-        }
+        v.setLayoutDirection(isRTL() ? View.LAYOUT_DIRECTION_RTL : View.LAYOUT_DIRECTION_LTR);
     }
 
     @Override

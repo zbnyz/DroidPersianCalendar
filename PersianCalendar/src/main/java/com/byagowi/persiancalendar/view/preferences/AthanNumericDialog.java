@@ -14,17 +14,12 @@ public class AthanNumericDialog extends EditTextPreferenceDialogFragmentCompat {
     @Override
     protected void onBindDialogView(View view) {
         super.onBindDialogView(view);
-
-        View dialogMessageView = view.findViewById(android.R.id.message);
-
         EditText editText = view.findViewById(android.R.id.edit);
         editText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_SIGNED |
                 InputType.TYPE_NUMBER_FLAG_DECIMAL);
 
         // on platforms supporting direction as LTR direction is more handy on editing numbers
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            editText.setTextDirection(View.TEXT_DIRECTION_LTR);
-            editText.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
-        }
+        editText.setTextDirection(View.TEXT_DIRECTION_LTR);
+        editText.setLayoutDirection(View.LAYOUT_DIRECTION_LTR);
     }
 }

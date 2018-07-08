@@ -196,19 +196,19 @@ public class CalendarFragment extends Fragment
         IslamicDate hijriDate = DateConverter.civilToIslamic(civilDate, Utils.getIslamicOffset());
 
         shamsiDateDay.setText(Utils.formatNumber(persianDate.getDayOfMonth()));
-        shamsiDate.setText(Utils.getMonthName(persianDate) + "\n" + Utils.formatNumber(persianDate.getYear()));
+        shamsiDate.setText(String.format("%s\n%s", Utils.getMonthName(persianDate), Utils.formatNumber(persianDate.getYear())));
 
         gregorianDateDay.setText(Utils.formatNumber(civilDate.getDayOfMonth()));
-        gregorianDate.setText(Utils.getMonthName(civilDate) + "\n" + Utils.formatNumber(civilDate.getYear()));
+        gregorianDate.setText(String.format("%s\n%s", Utils.getMonthName(civilDate), Utils.formatNumber(civilDate.getYear())));
 
         islamicDateDay.setText(Utils.formatNumber(hijriDate.getDayOfMonth()));
-        islamicDate.setText(Utils.getMonthName(hijriDate) + "\n" + Utils.formatNumber(hijriDate.getYear()));
+        islamicDate.setText(String.format("%s\n%s", Utils.getMonthName(hijriDate), Utils.formatNumber(hijriDate.getYear())));
 
         if (Utils.getToday().equals(persianDate)) {
             today.setVisibility(View.GONE);
             todayIcon.setVisibility(View.GONE);
             if (Utils.isIranTime())
-                weekDayName.setText(weekDayName.getText() + " (" + getString(R.string.iran_time) + ")");
+                weekDayName.setText(String.format("%s (%s)", weekDayName.getText(), getString(R.string.iran_time)));
         } else {
             today.setVisibility(View.VISIBLE);
             todayIcon.setVisibility(View.VISIBLE);
@@ -218,7 +218,6 @@ public class CalendarFragment extends Fragment
         showEvent(persianDate);
     }
 
-    @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     public void addEventOnCalendar(PersianDate persianDate) {
         Intent intent = new Intent(Intent.ACTION_INSERT);
         intent.setData(CalendarContract.Events.CONTENT_URI);
